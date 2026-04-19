@@ -1,0 +1,13 @@
+name: mlflow-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9 # Specify a Python version
+  - pip
+  - pip:
+    - mlflow
+    - pandas
+    - numpy
+    - scikit-learn
+    - argparse # Included as it's used in modelling.py for parameter parsing
