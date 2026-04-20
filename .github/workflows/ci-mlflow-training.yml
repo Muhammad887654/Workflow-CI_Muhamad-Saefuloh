@@ -32,11 +32,16 @@ jobs:
         run: echo "MLflow tracking configured"
 
       - name: Run MLflow Project
+        shell: bash -l {0}
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
-        run: mlflow run MLproject -e main --env-manager=conda -P data_path=MLproject/preprocessed_corn_data.csv -P n_estimators=100 -P max_depth=10 -P random_state=42 -P test_size=0.2
+        run: |
+          source ~/miniconda/etc/profile.d/conda.sh
+          conda activate mlflow-env
+          which mlflow  # debug: confirm PATH
+          mlflow run MLproject -e main --env-manager=conda -P data_path=MLproject/preprocessed_corn_data.csv -P n_estimators=100 -P max_depth=10 -P random_state=42 -P test_size=0.2
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
