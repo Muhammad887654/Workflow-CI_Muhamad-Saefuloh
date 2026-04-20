@@ -15,10 +15,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
@@ -34,19 +34,28 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: echo "MLflow tracking configured to DagsHub"
 
-      - name: Run MLflow training
+      - name: Run MLflow Project (entrypoint main)
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
-          cd MLproject
-          python modelling.py \
-            --data_path preprocessed_corn_data.csv \
-            --n_estimators 100 \
-            --max_depth 10 \
-            --random_state 42 \
-            --test_size 0.2
+          mlflow run .
+          -e main
+          --env-manager local
+          -P data_path=preprocessed_corn_data.csv
+          -P n_estimators=100
+          -P max_depth=10
+          -P random_state=42
+          -P test_size=0.2
+
+      - name: MLflow Build Docker (Advance)
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+        run: |
+          mlflow models build-docker -m "runs:/$(mlflow last-run-id --experiment-name CornYield --limit 1 --run-type 'Finished')/model" -n corn-yield-model
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
