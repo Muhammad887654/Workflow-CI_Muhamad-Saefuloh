@@ -12,10 +12,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: "3.9"
 
@@ -31,7 +31,7 @@ jobs:
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: echo "MLflow tracking configured"
 
-      - name: Run MLflow Project
+      - name: Run MLflow Project (mlflow run)
         env:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
@@ -52,7 +52,17 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and Push Docker Image
+      - name: Build Docker Image with MLflow
+        env:
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/corn-yield-model:latest .
+          mlflow models build-docker \
+            -m "MLproject" \
+            -n "${{ secrets.DOCKERHUB_USERNAME }}/corn-yield-model" \
+            --enable-mlserver
+
+      - name: Push Docker Image to Docker Hub
+        run: |
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/corn-yield-model:latest
