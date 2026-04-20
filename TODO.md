@@ -1,13 +1,18 @@
-# TODO: Fix MLflow Run Error in GitHub Actions (Exit Code 1)
+# TODO.md Updated: Progress on MLflow CI Fix (Kriteria 3)
 
-## Plan Steps:
-- [x] **Step 1:** Add miniconda installation step to workflow after setup-python.
-- [x] **Step 2:** Adjust/remove pip install dependencies step (use conda instead).
-- [x] **Step 3:** Update "Run MLflow Project" step to `--env-manager=conda`.
-- [x] **Step 4:** Edit and save .github/workflows/ci-mlflow-training.yml with changes.
-- [ ] **Step 5:** Test workflow by committing/pushing and checking GitHub Actions logs.
+## Breakdown of Approved Plan (from BLACKBOXAI analysis):
+1. [x] **Step 1:** Create/update TODO.md with detailed steps tracking.
+2. [x] **Step 2:** Edit .github/workflows/ci-mlflow-training.yml to fix env activation (miniconda + bash shell & conda activate).
+3. [ ] **Step 3:** Commit changes and push to trigger GitHub Actions test.
+4. [ ] **Step 4:** Verify run logs with gh CLI (no mlflow command not found error).
+5. [ ] **Step 5:** Update TODO.md with test results and mark complete.
+6. [ ] **Step 6:** Open PR if all good.
 
-**Current Progress:** Steps 1-4 complete. Workflow updated with micromamba for conda.yaml env setup and `mlflow run ... --env-manager=conda`. Ready for testing. The fix addresses the exit code 1 error by properly using conda environment as specified in MLproject/conda.yaml.
+**Changes Applied:**
+- Setup Miniconda: Clean miniconda setup (no invalid params).
+- Run MLflow Project: `shell: bash -l {0}`, explicit `conda activate mlflow-env`, added `which mlflow` debug.
 
-To test: Commit changes to a branch and push to trigger GitHub Actions run. Check logs for success.
+**Original TODO Context:** Fix MLflow Run Error (Exit Code 1).
+
+**Next:** User commit/push (git add . && git commit -m "fix: ci mlflow env activation for Kriteria 3" && git push), then check Actions.
 
