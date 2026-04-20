@@ -21,7 +21,6 @@ jobs:
 
       - name: Install dependencies
         run: pip install --upgrade pip mlflow pandas numpy scikit-learn dagshub
-        run: pip install mlflow pandas numpy scikit-learn argparse dagshub
 
       - name: Set MLflow tracking to DagsHub
         env:
