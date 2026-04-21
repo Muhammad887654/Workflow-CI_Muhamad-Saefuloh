@@ -41,8 +41,7 @@ jobs:
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
         run: |
-          RUN_ID=$(mlflow run MLproject -e main --env-manager=local -P data_path=preprocessed_corn_data.csv -P n_estimators=100 -P max_depth=10 -P random_state=42 -P test_size=0.2 --dump-trace | jq -r '.runs[0].run_id') && echo "Captured RUN_ID: $RUN_ID"
-
+          RUN_ID=$(mlflow run MLproject -e main --env-manager=local -P data_path=preprocessed_corn_data.csv -P n_estimators=100 -P max_depth=10 -P random_state=42 -P test_size=0.2 | jq -r '.run_id')
 
       - name: Save model artifact to GitHub
         uses: actions/upload-artifact@v4
