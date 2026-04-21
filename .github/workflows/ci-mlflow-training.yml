@@ -36,20 +36,16 @@ jobs:
         run: echo "MLflow tracking configured"
 
       - name: Run MLflow Project
-        env:
-          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
-          MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
-          MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
-        run: |
-          mlflow run MLproject -e main --env-manager=local \
-            -P data_path=preprocessed_corn_data.csv \
-            -P n_estimators=100 \
-            -P max_depth=10 \
-            -P random_state=42 \
-            -P test_size=0.2 \
-            2>&1 | tee /tmp/mlflow_output.txt
-          RUN_ID=$(cat /tmp/mlflow_output.txt | grep -oP '(?<=ID '"'"')[^'"'"']*(?='"'"')' | head -1)
-          echo "RUN_ID=${RUN_ID}" >> $GITHUB_ENV
+  id: run-mlflow
+  env:
+    MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+    MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
+    MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
+  run: |
+    RUN_ID=$(mlflow run MLproject -e main --env-manager=local -P data_path=preprocessed_corn_data.csv -P n_estimators=100 -P max_depth=10 -P random_state=42 -P test_size=0.2 --dump-trace | jq -r '.runs[0].run_id')
+    echo "Captured RUN_ID: $RUN_ID"
+    echo "run_id=$RUN_ID" >> $GITHUB_OUTPUT
+
 
       - name: Save model artifact to GitHub
         uses: actions/upload-artifact@v4
@@ -70,7 +66,7 @@ jobs:
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
           MLFLOW_TRACKING_USERNAME: ${{ secrets.MLFLOW_TRACKING_USERNAME }}
           MLFLOW_TRACKING_PASSWORD: ${{ secrets.MLFLOW_TRACKING_PASSWORD }}
-        run: mlflow models build-docker -m "runs:/${RUN_ID}/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/corn-yield-model" --enable-mlserver
+        run: mlflow models build-docker -m "runs:/${{ steps.run-mlflow.outputs.run_id }}/model" -n "${{ secrets.DOCKERHUB_USERNAME }}/corn-yield-model" --enable-mlserver
 
       - name: Push Docker Image to Docker Hub
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/corn-yield-model:latest
