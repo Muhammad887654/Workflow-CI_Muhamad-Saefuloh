@@ -33,6 +33,7 @@ def train_model(data_path, n_estimators, max_depth, random_state, test_size):
     print(f"Testing  samples : {len(X_test)}")
     print(f"Features         : {X_train.shape[1]}")
 
+    # ── Autolog: mencatat params, metrics, dan artefak secara otomatis ──
     mlflow.sklearn.autolog(log_model_signatures=True, log_input_examples=True)
 
     with mlflow.start_run(run_name="RandomForest_CornYield"):
@@ -43,21 +44,23 @@ def train_model(data_path, n_estimators, max_depth, random_state, test_size):
         )
         model.fit(X_train, y_train)
 
+        # Explicit log model (ensures 'model' artifact)
+        mlflow.sklearn.log_model(model, "model", input_example=X_train.iloc[:5])
+
         y_pred = model.predict(X_test)
 
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         r2   = r2_score(y_test, y_pred)
 
+        # Log tambahan (opsional – autolog sudah menangkap rmse/r2)
         mlflow.log_metric("rmse_manual", rmse)
         mlflow.log_metric("r2_manual",   r2)
-
-        # Explicitly log the model to MLflow
-        mlflow.sklearn.log_model(model, "model")
 
         print(f"\n── Hasil Evaluasi ──")
         print(f"RMSE    : {rmse:.4f}")
         print(f"R2 Score: {r2:.4f}")
         print(f"Run ID  : {mlflow.active_run().info.run_id}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train RandomForest Corn Yield Model")
